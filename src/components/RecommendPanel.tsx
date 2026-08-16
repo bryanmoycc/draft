@@ -1,17 +1,20 @@
 "use client";
 
 import { Recommendation } from "@/lib/recommend";
+import { estimateSurvival } from "@/lib/snake";
 import { DraftedBy } from "@/lib/types";
 import PositionBadge from "./PositionBadge";
 import InjuryBadge from "./InjuryBadge";
 import BreakoutBadge from "./BreakoutBadge";
+import SurvivalBadge from "./SurvivalBadge";
 
 interface RecommendPanelProps {
   recommendations: Recommendation[];
   onDraft: (playerId: string, by: DraftedBy) => void;
+  nextMyPickNumber: number | null;
 }
 
-export default function RecommendPanel({ recommendations, onDraft }: RecommendPanelProps) {
+export default function RecommendPanel({ recommendations, onDraft, nextMyPickNumber }: RecommendPanelProps) {
   const top = recommendations.slice(0, 5);
 
   return (
@@ -28,6 +31,7 @@ export default function RecommendPanel({ recommendations, onDraft }: RecommendPa
             {p.name}
             <InjuryBadge status={p.injuryStatus} />
             <BreakoutBadge isBreakout={p.isBreakout} trendingAddCount={p.trendingAddCount} />
+            {nextMyPickNumber !== null && <SurvivalBadge estimate={estimateSurvival(p.rank, nextMyPickNumber)} />}
           </span>
           <button
             onClick={() => onDraft(p.id, "me")}

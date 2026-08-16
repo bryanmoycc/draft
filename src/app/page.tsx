@@ -5,9 +5,11 @@ import PlayerBoard from "@/components/PlayerBoard";
 import RosterSidebar from "@/components/RosterSidebar";
 import RecommendPanel from "@/components/RecommendPanel";
 import BreakoutWatch from "@/components/BreakoutWatch";
+import TurnTracker from "@/components/TurnTracker";
 import { useDraftStore } from "@/store/draftStore";
 import { recommendPlayers } from "@/lib/recommend";
 import { assignRoster } from "@/lib/roster";
+import { getTurnInfo } from "@/lib/snake";
 import { Player } from "@/lib/types";
 
 export default function Home() {
@@ -21,6 +23,7 @@ export default function Home() {
   const draftPlayer = useDraftStore((s) => s.draftPlayer);
   const undoPick = useDraftStore((s) => s.undoPick);
   const resetDraft = useDraftStore((s) => s.resetDraft);
+  const setRosterSettings = useDraftStore((s) => s.setRosterSettings);
 
   useEffect(() => {
     fetch("/api/players")
@@ -60,12 +63,15 @@ export default function Home() {
     [availablePlayers, rosterAssignment, rosterSettings]
   );
 
+  const turnInfo = useMemo(() => getTurnInfo(picks.length, rosterSettings), [picks.length, rosterSettings]);
+
   return (
     <div className="flex flex-col flex-1 min-h-0">
       <header className="flex items-center justify-between px-6 py-4 border-b border-black/10 dark:border-white/15">
         <h1 className="text-lg font-bold">Fantasy Draft Assistant</h1>
-        <div className="flex items-center gap-3 text-sm text-foreground/60">
-          <span>{picks.length} picks made</span>
+        <div className="flex items-center gap-4">
+          <TurnTracker picksCount={picks.length} settings={rosterSettings} onSettingsChange={setRosterSettings} />
+          <span className="text-sm text-foreground/60">{picks.length} picks made</span>
           <button
             onClick={() => {
               if (confirm("Reset the entire draft? This clears all picks.")) resetDraft();
@@ -87,10 +93,18 @@ export default function Home() {
         ) : (
           <>
             <section className="min-h-0">
-              <PlayerBoard availablePlayers={availablePlayers} onDraft={draftPlayer} />
+              <PlayerBoard
+                availablePlayers={availablePlayers}
+                onDraft={draftPlayer}
+                nextMyPickNumber={turnInfo.nextMyPickNumber}
+              />
             </section>
             <aside className="min-h-0 overflow-y-auto flex flex-col gap-5">
-              <RecommendPanel recommendations={recommendations} onDraft={draftPlayer} />
+              <RecommendPanel
+                recommendations={recommendations}
+                onDraft={draftPlayer}
+                nextMyPickNumber={turnInfo.nextMyPickNumber}
+              />
               <BreakoutWatch availablePlayers={availablePlayers} onDraft={draftPlayer} />
             </aside>
             <aside className="min-h-0 overflow-y-auto">

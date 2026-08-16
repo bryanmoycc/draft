@@ -28,11 +28,14 @@ export type RosterSlotType = "QB" | "RB" | "WR" | "TE" | "FLEX" | "K" | "DEF" | 
 
 export interface RosterSettings {
   numTeams: number;
+  /** 1-indexed draft position in round 1 of a snake draft. */
+  myDraftSlot: number;
   slots: RosterSlotType[];
 }
 
 export const DEFAULT_ROSTER_SETTINGS: RosterSettings = {
   numTeams: 12,
+  myDraftSlot: 4,
   slots: ["QB", "RB", "RB", "WR", "WR", "TE", "FLEX", "K", "DEF", "BENCH", "BENCH", "BENCH", "BENCH", "BENCH", "BENCH"],
 };
 

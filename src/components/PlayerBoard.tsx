@@ -2,16 +2,20 @@
 
 import { useMemo, useState } from "react";
 import { DraftedBy, Player, Position, POSITIONS } from "@/lib/types";
+import { estimateSurvival } from "@/lib/snake";
 import PositionBadge from "./PositionBadge";
 import InjuryBadge from "./InjuryBadge";
 import BreakoutBadge from "./BreakoutBadge";
+import SurvivalBadge from "./SurvivalBadge";
 
 interface PlayerBoardProps {
   availablePlayers: Player[];
   onDraft: (playerId: string, by: DraftedBy) => void;
+  /** My next overall pick number in the snake draft, if known. */
+  nextMyPickNumber: number | null;
 }
 
-export default function PlayerBoard({ availablePlayers, onDraft }: PlayerBoardProps) {
+export default function PlayerBoard({ availablePlayers, onDraft, nextMyPickNumber }: PlayerBoardProps) {
   const [positionFilter, setPositionFilter] = useState<Position | "ALL">("ALL");
   const [search, setSearch] = useState("");
   const [breakoutOnly, setBreakoutOnly] = useState(false);
@@ -90,6 +94,7 @@ export default function PlayerBoard({ availablePlayers, onDraft }: PlayerBoardPr
               <th className="px-3 py-2 font-medium">Player</th>
               <th className="px-3 py-2 font-medium">Team</th>
               <th className="px-3 py-2 font-medium">Tier</th>
+              {nextMyPickNumber !== null && <th className="px-3 py-2 font-medium">Survives?</th>}
               <th className="px-3 py-2 font-medium text-right">Draft</th>
             </tr>
           </thead>
@@ -116,6 +121,11 @@ export default function PlayerBoard({ availablePlayers, onDraft }: PlayerBoardPr
                   </td>
                   <td className="px-3 py-2 text-foreground/60">{p.team ?? "—"}</td>
                   <td className="px-3 py-2 text-foreground/60">T{p.tier}</td>
+                  {nextMyPickNumber !== null && (
+                    <td className="px-3 py-2">
+                      <SurvivalBadge estimate={estimateSurvival(p.rank, nextMyPickNumber)} />
+                    </td>
+                  )}
                   <td className="px-3 py-2">
                     <div className="flex justify-end gap-1.5">
                       <button
@@ -137,7 +147,7 @@ export default function PlayerBoard({ availablePlayers, onDraft }: PlayerBoardPr
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-3 py-8 text-center text-foreground/50">
+                <td colSpan={nextMyPickNumber !== null ? 7 : 6} className="px-3 py-8 text-center text-foreground/50">
                   No players match.
                 </td>
               </tr>

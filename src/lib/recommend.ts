@@ -14,6 +14,11 @@ const BASELINE_REPLACEMENT_RANK_12_TEAM: Record<Position, number> = {
 const REQUIRED_SLOT_BONUS = 40;
 const FLEX_SLOT_BONUS = 20;
 
+// RB/WR have the steepest positional drop-off and the deepest bench/flex
+// utility, so nudge them ahead of QB/TE among comparably-valued players.
+const PRIORITY_POSITIONS = new Set<Position>(["RB", "WR"]);
+const PRIORITY_POSITION_BONUS = 15;
+
 // Kept well below REQUIRED_SLOT_BONUS so breakout buzz nudges the order
 // within a tier rather than overriding real roster need.
 const BREAKOUT_BONUS_CAP = 25;
@@ -52,7 +57,9 @@ export function recommendPlayers(
         needBonus += FLEX_SLOT_BONUS;
       }
 
-      return { ...player, value, score: value + needBonus + breakoutBonus(player) };
+      const priorityBonus = PRIORITY_POSITIONS.has(player.position) ? PRIORITY_POSITION_BONUS : 0;
+
+      return { ...player, value, score: value + needBonus + breakoutBonus(player) + priorityBonus };
     })
     .sort((a, b) => b.score - a.score);
 }
