@@ -10,7 +10,7 @@ import { useDraftStore } from "@/store/draftStore";
 import { recommendPlayers } from "@/lib/recommend";
 import { assignRoster } from "@/lib/roster";
 import { getTurnInfo } from "@/lib/snake";
-import { countMyPositions, getDraftPhase, PHASE_LABELS } from "@/lib/strategy";
+import { countMyPositions, getStrategyNote } from "@/lib/strategy";
 import { Player } from "@/lib/types";
 
 export default function Home() {
@@ -59,17 +59,17 @@ export default function Home() {
     [myPlayersInDraftOrder, rosterSettings]
   );
 
-  const recommendations = useMemo(
-    () => recommendPlayers(availablePlayers, rosterAssignment, rosterSettings),
-    [availablePlayers, rosterAssignment, rosterSettings]
-  );
-
   const turnInfo = useMemo(() => getTurnInfo(picks.length, rosterSettings), [picks.length, rosterSettings]);
 
-  const phaseLabel = useMemo(() => {
+  const recommendations = useMemo(
+    () => recommendPlayers(availablePlayers, rosterAssignment, rosterSettings, turnInfo.nextMyPickNumber),
+    [availablePlayers, rosterAssignment, rosterSettings, turnInfo.nextMyPickNumber]
+  );
+
+  const strategyNote = useMemo(() => {
     const counts = countMyPositions(myPlayersInDraftOrder);
-    return PHASE_LABELS[getDraftPhase(counts)];
-  }, [myPlayersInDraftOrder]);
+    return getStrategyNote(availablePlayers, counts);
+  }, [myPlayersInDraftOrder, availablePlayers]);
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -110,7 +110,7 @@ export default function Home() {
                 recommendations={recommendations}
                 onDraft={draftPlayer}
                 nextMyPickNumber={turnInfo.nextMyPickNumber}
-                phaseLabel={phaseLabel}
+                phaseLabel={strategyNote}
               />
               <BreakoutWatch availablePlayers={availablePlayers} onDraft={draftPlayer} />
             </aside>

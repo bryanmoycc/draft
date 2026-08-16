@@ -1,5 +1,6 @@
 import { openRequiredSlots, RosterAssignment } from "./roster";
-import { countMyPositions, strategyBonus } from "./strategy";
+import { countMyPositions, eliteTeBonus, rbDoubleUpBonus, survivalUrgencyBonus } from "./strategy";
+import { estimateSurvival } from "./snake";
 import { FLEX_ELIGIBLE, Player, Position, RosterSettings } from "./types";
 
 // VBD-style replacement ranks calibrated for a 12-team league, scaled by league size.
@@ -41,7 +42,8 @@ function replacementRank(position: Position, numTeams: number): number {
 export function recommendPlayers(
   availablePlayers: Player[],
   rosterAssignment: RosterAssignment[],
-  settings: RosterSettings
+  settings: RosterSettings,
+  nextMyPickNumber: number | null
 ): Recommendation[] {
   const openSlots = openRequiredSlots(rosterAssignment);
   const openPositions = new Set(openSlots.filter((s) => s !== "FLEX"));
@@ -63,9 +65,17 @@ export function recommendPlayers(
         }
       }
 
-      const planBonus = strategyBonus(player.position, counts);
+      const survival = nextMyPickNumber !== null ? estimateSurvival(player.rank, nextMyPickNumber) : null;
 
-      return { ...player, value, score: value + needBonus + breakoutBonus(player) + planBonus };
+      const score =
+        value +
+        needBonus +
+        breakoutBonus(player) +
+        eliteTeBonus(player, counts) +
+        rbDoubleUpBonus(player, counts) +
+        survivalUrgencyBonus(survival);
+
+      return { ...player, value, score };
     })
     .sort((a, b) => b.score - a.score);
 }

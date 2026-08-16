@@ -8,78 +8,66 @@ export function countMyPositions(myPlayers: Player[]): PositionCounts {
   return counts;
 }
 
-export type DraftPhase =
-  | "core-rb"
-  | "core-wr"
-  | "starting-te"
-  | "backup-qb"
-  | "backup-te"
-  | "best-available";
+/**
+ * Research-backed nudges (2026 consensus: FantasyPros, PFF, Draft Sharks,
+ * Establish the Run et al.) instead of a fixed position queue — every source
+ * agrees the biggest mistake is forcing a predetermined plan instead of
+ * taking the value in front of you. These only break ties between
+ * comparably-valued players; the underlying value-based-drafting score
+ * (positional replacement-rank gap) still does the heavy lifting.
+ */
+const ELITE_TE_BONUS = 20;
+const RB_DOUBLE_UP_BONUS = 10;
+const SURVIVAL_URGENCY_BONUS = 10;
 
-const CORE_RB_TARGET = 3;
-const CORE_WR_TARGET = 3;
+const ELITE_TIER = 2;
+const RB_DOUBLE_UP_TARGET = 2;
 
 /**
- * The user's stated draft plan: build an RB/WR core (RB weighted ahead of
- * WR) until at least 3 of each, then grab a starting TE, a backup QB, and a
- * backup TE in that order, then best-available RB/WR (plus K/DEF) with a
- * 3rd+ QB as the lowest priority. This is a preference queue, not a hard
- * rule — the bonuses below are kept small next to real value-based-drafting
- * gaps so a genuine standout at another position can still win.
+ * TE is a "get the elite tier or punt it" position — the scoring cliff after
+ * the top few TEs is steep enough that a true top-tier guy is a real weekly
+ * edge, but reaching for a mid-tier TE just to fill the slot isn't worth it
+ * (value-based drafting already discourages that on its own).
  */
-export function getDraftPhase(counts: PositionCounts): DraftPhase {
-  if (counts.RB < CORE_RB_TARGET) return "core-rb";
-  if (counts.WR < CORE_WR_TARGET) return "core-wr";
-  if (counts.TE < 1) return "starting-te";
-  if (counts.QB < 2) return "backup-qb";
-  if (counts.TE < 2) return "backup-te";
-  return "best-available";
+export function eliteTeBonus(player: Player, counts: PositionCounts): number {
+  if (player.position !== "TE") return 0;
+  if (counts.TE >= 1) return 0;
+  return player.tier <= ELITE_TIER ? ELITE_TE_BONUS : 0;
 }
 
-export const PHASE_LABELS: Record<DraftPhase, string> = {
-  "core-rb": "Building RB core (targeting 3 RB)",
-  "core-wr": "Building WR core (targeting 3 WR)",
-  "starting-te": "Targeting a starting TE",
-  "backup-qb": "Targeting a backup QB",
-  "backup-te": "Targeting a backup TE",
-  "best-available": "Best available RB/WR/K/DEF (QB lowest priority)",
-};
+/**
+ * 2026-specific: a weak rookie class and fewer true workhorse backs make
+ * "two of the top-15 RBs" a cited edge this year. Only applies to
+ * still-elite-tier RBs, and stops once you have your second one — this is a
+ * nudge toward doubling up when the value is there, not a forced 3-RB floor.
+ */
+export function rbDoubleUpBonus(player: Player, counts: PositionCounts): number {
+  if (player.position !== "RB") return 0;
+  if (counts.RB >= RB_DOUBLE_UP_TARGET) return 0;
+  return player.tier <= ELITE_TIER ? RB_DOUBLE_UP_BONUS : 0;
+}
 
-// Small nudges, not overrides: a typical tier-to-tier value gap (roughly
-// 6-15 VBD points) should be enough for a standout player at a
-// lower-priority position to still outrank the phase's target position.
-// These only decide close calls between comparably-valued players.
-const PRIMARY_BONUS = 15;
-const SECONDARY_BONUS = 6;
-const KDEF_BONUS = 4;
+/**
+ * The actual pick-position-driven lever: if a player is a toss-up to survive
+ * until your next turn, that's the case for reaching now instead of waiting
+ * — a "safe" player can be grabbed later, and a "likely gone" player is
+ * probably a lost cause either way, so neither needs a boost.
+ */
+export function survivalUrgencyBonus(survival: "gone" | "borderline" | "safe" | null): number {
+  return survival === "borderline" ? SURVIVAL_URGENCY_BONUS : 0;
+}
 
-export function strategyBonus(position: Position, counts: PositionCounts): number {
-  const phase = getDraftPhase(counts);
+export function getStrategyNote(availablePlayers: Player[], counts: PositionCounts): string {
+  const bestAvailableTe = availablePlayers.find((p) => p.position === "TE");
 
-  switch (phase) {
-    case "core-rb":
-      if (position === "RB") return PRIMARY_BONUS;
-      if (position === "WR") return SECONDARY_BONUS;
-      return 0;
-    case "core-wr":
-      if (position === "WR") return PRIMARY_BONUS;
-      if (position === "RB") return SECONDARY_BONUS;
-      return 0;
-    case "starting-te":
-      if (position === "TE") return PRIMARY_BONUS;
-      if (position === "RB" || position === "WR") return SECONDARY_BONUS;
-      return 0;
-    case "backup-qb":
-      if (position === "QB") return PRIMARY_BONUS;
-      if (position === "RB" || position === "WR") return SECONDARY_BONUS;
-      return 0;
-    case "backup-te":
-      if (position === "TE") return PRIMARY_BONUS;
-      if (position === "RB" || position === "WR") return SECONDARY_BONUS;
-      return 0;
-    case "best-available":
-      if (position === "RB" || position === "WR") return SECONDARY_BONUS;
-      if (position === "K" || position === "DEF") return KDEF_BONUS;
-      return 0; // QB (3rd+) is the lowest priority here
+  if (counts.TE === 0 && bestAvailableTe && bestAvailableTe.tier <= ELITE_TIER) {
+    return "Elite TE available — a real weekly edge if you want it, otherwise fine to wait";
   }
+  if (counts.RB < RB_DOUBLE_UP_TARGET) {
+    return "Workhorse RBs are scarce this year — a 2nd top-tier RB is a cited edge";
+  }
+  if (counts.QB === 0) {
+    return "QB is deep this year — best player available, no need to reach";
+  }
+  return "Best player available (value-based)";
 }
