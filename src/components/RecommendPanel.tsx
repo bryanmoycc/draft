@@ -12,14 +12,18 @@ interface RecommendPanelProps {
   recommendations: Recommendation[];
   onDraft: (playerId: string, by: DraftedBy) => void;
   nextMyPickNumber: number | null;
+  phaseLabel: string;
 }
 
-export default function RecommendPanel({ recommendations, onDraft, nextMyPickNumber }: RecommendPanelProps) {
+export default function RecommendPanel({ recommendations, onDraft, nextMyPickNumber, phaseLabel }: RecommendPanelProps) {
   const top = recommendations.slice(0, 5);
 
   return (
     <div className="flex flex-col gap-1.5">
-      <h2 className="text-sm font-semibold text-foreground/70 mb-1">Recommended Picks</h2>
+      <div className="mb-1">
+        <h2 className="text-sm font-semibold text-foreground/70">Recommended Picks</h2>
+        <p className="text-xs text-foreground/40">{phaseLabel}</p>
+      </div>
       {top.map((p, i) => (
         <div
           key={p.id}

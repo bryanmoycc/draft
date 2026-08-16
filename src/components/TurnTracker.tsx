@@ -14,8 +14,8 @@ export default function TurnTracker({ picksCount, settings, onSettingsChange }: 
 
   return (
     <div className="flex items-center gap-3 text-sm">
-      <div className="flex items-center gap-1.5 text-foreground/60">
-        <span>Pick</span>
+      <div className="flex items-center gap-1.5 text-foreground/60" title="Change this any time your draft slot changes — recommendations update instantly">
+        <span>My slot</span>
         <input
           type="number"
           min={1}

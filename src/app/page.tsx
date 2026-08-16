@@ -10,6 +10,7 @@ import { useDraftStore } from "@/store/draftStore";
 import { recommendPlayers } from "@/lib/recommend";
 import { assignRoster } from "@/lib/roster";
 import { getTurnInfo } from "@/lib/snake";
+import { countMyPositions, getDraftPhase, PHASE_LABELS } from "@/lib/strategy";
 import { Player } from "@/lib/types";
 
 export default function Home() {
@@ -65,6 +66,11 @@ export default function Home() {
 
   const turnInfo = useMemo(() => getTurnInfo(picks.length, rosterSettings), [picks.length, rosterSettings]);
 
+  const phaseLabel = useMemo(() => {
+    const counts = countMyPositions(myPlayersInDraftOrder);
+    return PHASE_LABELS[getDraftPhase(counts)];
+  }, [myPlayersInDraftOrder]);
+
   return (
     <div className="flex flex-col flex-1 min-h-0">
       <header className="flex items-center justify-between px-6 py-4 border-b border-black/10 dark:border-white/15">
@@ -104,6 +110,7 @@ export default function Home() {
                 recommendations={recommendations}
                 onDraft={draftPlayer}
                 nextMyPickNumber={turnInfo.nextMyPickNumber}
+                phaseLabel={phaseLabel}
               />
               <BreakoutWatch availablePlayers={availablePlayers} onDraft={draftPlayer} />
             </aside>
