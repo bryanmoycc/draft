@@ -3,6 +3,7 @@
 import { Recommendation } from "@/lib/recommend";
 import { DraftedBy } from "@/lib/types";
 import PositionBadge from "./PositionBadge";
+import InjuryBadge from "./InjuryBadge";
 
 interface RecommendPanelProps {
   recommendations: Recommendation[];
@@ -22,7 +23,10 @@ export default function RecommendPanel({ recommendations, onDraft }: RecommendPa
         >
           <span className="w-4 shrink-0 text-xs font-mono text-foreground/40">{i + 1}</span>
           <PositionBadge position={p.position} />
-          <span className="flex-1 truncate">{p.name}</span>
+          <span className="flex-1 truncate flex items-center gap-1.5">
+            {p.name}
+            <InjuryBadge status={p.injuryStatus} />
+          </span>
           <button
             onClick={() => onDraft(p.id, "me")}
             className="px-2 py-1 rounded text-xs font-medium bg-emerald-600 text-white hover:bg-emerald-500"

@@ -12,6 +12,7 @@ interface SleeperPlayer {
   team?: string | null;
   active?: boolean;
   search_rank?: number;
+  injury_status?: string | null;
 }
 
 const TIER_SIZE: Record<Position, number> = {
@@ -78,6 +79,7 @@ export async function fetchPlayers(): Promise<Player[]> {
       rank: overallRank++,
       positionRank,
       tier,
+      injuryStatus: p.injury_status ?? null,
     });
   }
 

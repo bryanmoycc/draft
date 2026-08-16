@@ -2,6 +2,7 @@
 
 import { RosterAssignment } from "@/lib/roster";
 import PositionBadge from "./PositionBadge";
+import InjuryBadge from "./InjuryBadge";
 
 interface RosterSidebarProps {
   assignment: RosterAssignment[];
@@ -23,6 +24,7 @@ export default function RosterSidebar({ assignment, onUndo }: RosterSidebarProps
               <span className="flex-1 truncate flex items-center gap-2">
                 <PositionBadge position={slot.player.position} />
                 {slot.player.name}
+                <InjuryBadge status={slot.player.injuryStatus} />
               </span>
               <button
                 onClick={() => onUndo(slot.player!.id)}

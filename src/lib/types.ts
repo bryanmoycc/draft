@@ -10,6 +10,7 @@ export interface Player {
   rank: number;
   positionRank: number;
   tier: number;
+  injuryStatus: string | null;
 }
 
 export type DraftedBy = "me" | "opponent";

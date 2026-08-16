@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { DraftedBy, Player, Position, POSITIONS } from "@/lib/types";
 import PositionBadge from "./PositionBadge";
+import InjuryBadge from "./InjuryBadge";
 
 interface PlayerBoardProps {
   availablePlayers: Player[];
@@ -93,7 +94,12 @@ export default function PlayerBoard({ availablePlayers, onDraft }: PlayerBoardPr
                   <td className="px-3 py-2">
                     <PositionBadge position={p.position} />
                   </td>
-                  <td className="px-3 py-2 font-medium">{p.name}</td>
+                  <td className="px-3 py-2 font-medium">
+                    <span className="inline-flex items-center gap-1.5">
+                      {p.name}
+                      <InjuryBadge status={p.injuryStatus} />
+                    </span>
+                  </td>
                   <td className="px-3 py-2 text-foreground/60">{p.team ?? "—"}</td>
                   <td className="px-3 py-2 text-foreground/60">T{p.tier}</td>
                   <td className="px-3 py-2">
