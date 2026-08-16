@@ -14,6 +14,8 @@ export interface Player {
   yearsExp: number | null;
   trendingAddCount: number;
   isBreakout: boolean;
+  /** Projected fantasy points for the season (PPR scoring), if available. */
+  projectedPoints: number | null;
 }
 
 export type DraftedBy = "me" | "opponent";

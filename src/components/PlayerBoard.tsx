@@ -94,6 +94,7 @@ export default function PlayerBoard({ availablePlayers, onDraft, nextMyPickNumbe
               <th className="px-3 py-2 font-medium">Player</th>
               <th className="px-3 py-2 font-medium">Team</th>
               <th className="px-3 py-2 font-medium">Tier</th>
+              <th className="px-3 py-2 font-medium text-right">Proj Pts</th>
               {nextMyPickNumber !== null && <th className="px-3 py-2 font-medium">Survives?</th>}
               <th className="px-3 py-2 font-medium text-right">Draft</th>
             </tr>
@@ -121,6 +122,9 @@ export default function PlayerBoard({ availablePlayers, onDraft, nextMyPickNumbe
                   </td>
                   <td className="px-3 py-2 text-foreground/60">{p.team ?? "—"}</td>
                   <td className="px-3 py-2 text-foreground/60">T{p.tier}</td>
+                  <td className="px-3 py-2 text-foreground/60 text-right">
+                    {p.projectedPoints !== null ? p.projectedPoints.toFixed(1) : "—"}
+                  </td>
                   {nextMyPickNumber !== null && (
                     <td className="px-3 py-2">
                       <SurvivalBadge estimate={estimateSurvival(p.rank, nextMyPickNumber)} />
@@ -147,7 +151,7 @@ export default function PlayerBoard({ availablePlayers, onDraft, nextMyPickNumbe
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={nextMyPickNumber !== null ? 7 : 6} className="px-3 py-8 text-center text-foreground/50">
+                <td colSpan={nextMyPickNumber !== null ? 8 : 7} className="px-3 py-8 text-center text-foreground/50">
                   No players match.
                 </td>
               </tr>

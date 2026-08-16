@@ -4,6 +4,17 @@ const SLEEPER_PLAYERS_URL = "https://api.sleeper.app/v1/players/nfl";
 const SLEEPER_TRENDING_ADD_URL =
   "https://api.sleeper.app/v1/players/nfl/trending/add?lookback_hours=48&limit=200";
 
+// The NFL league year turns over in March; before that we're still in the
+// prior season's playoffs/offseason discussion.
+function currentNflSeason(): number {
+  const now = new Date();
+  return now.getMonth() >= 2 ? now.getFullYear() : now.getFullYear() - 1;
+}
+
+function projectionsUrl(): string {
+  return `https://api.sleeper.app/v1/projections/nfl/regular/${currentNflSeason()}`;
+}
+
 interface SleeperPlayer {
   player_id: string;
   full_name?: string;
@@ -21,6 +32,10 @@ interface SleeperPlayer {
 interface TrendingEntry {
   player_id: string;
   count: number;
+}
+
+interface ProjectionStats {
+  pts_ppr?: number;
 }
 
 // A player is a "breakout candidate" if they're seeing real add/rostering
@@ -70,14 +85,40 @@ async function fetchTrendingAddCounts(): Promise<Map<string, number>> {
   }
 }
 
+// Projections update over the course of the season but not minute to
+// minute, so cache them alongside the player pool.
+let projectionsCache: { points: Map<string, number>; fetchedAt: number } | null = null;
+
+async function fetchProjectedPoints(): Promise<Map<string, number>> {
+  if (projectionsCache && Date.now() - projectionsCache.fetchedAt < CACHE_TTL_MS) {
+    return projectionsCache.points;
+  }
+
+  try {
+    const res = await fetch(projectionsUrl(), { cache: "no-store" });
+    if (!res.ok) throw new Error(`Sleeper projections request failed: ${res.status}`);
+    const data = (await res.json()) as Record<string, ProjectionStats>;
+    const points = new Map<string, number>();
+    for (const [playerId, stats] of Object.entries(data)) {
+      if (typeof stats.pts_ppr === "number") points.set(playerId, stats.pts_ppr);
+    }
+    projectionsCache = { points, fetchedAt: Date.now() };
+    return points;
+  } catch {
+    // Projections are a nice-to-have; don't fail the whole player load over it.
+    return projectionsCache?.points ?? new Map();
+  }
+}
+
 export async function fetchPlayers(): Promise<Player[]> {
   if (cache && Date.now() - cache.fetchedAt < CACHE_TTL_MS) {
     return cache.players;
   }
 
-  const [res, trendingAddCounts] = await Promise.all([
+  const [res, trendingAddCounts, projectedPoints] = await Promise.all([
     fetch(SLEEPER_PLAYERS_URL, { cache: "no-store" }),
     fetchTrendingAddCounts(),
+    fetchProjectedPoints(),
   ]);
   if (!res.ok) {
     throw new Error(`Sleeper API request failed: ${res.status}`);
@@ -128,6 +169,7 @@ export async function fetchPlayers(): Promise<Player[]> {
       yearsExp,
       trendingAddCount,
       isBreakout,
+      projectedPoints: projectedPoints.get(p.player_id) ?? null,
     });
   }
 
