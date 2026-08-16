@@ -4,6 +4,7 @@ import { Recommendation } from "@/lib/recommend";
 import { DraftedBy } from "@/lib/types";
 import PositionBadge from "./PositionBadge";
 import InjuryBadge from "./InjuryBadge";
+import BreakoutBadge from "./BreakoutBadge";
 
 interface RecommendPanelProps {
   recommendations: Recommendation[];
@@ -26,6 +27,7 @@ export default function RecommendPanel({ recommendations, onDraft }: RecommendPa
           <span className="flex-1 truncate flex items-center gap-1.5">
             {p.name}
             <InjuryBadge status={p.injuryStatus} />
+            <BreakoutBadge isBreakout={p.isBreakout} trendingAddCount={p.trendingAddCount} />
           </span>
           <button
             onClick={() => onDraft(p.id, "me")}

@@ -14,6 +14,15 @@ const BASELINE_REPLACEMENT_RANK_12_TEAM: Record<Position, number> = {
 const REQUIRED_SLOT_BONUS = 40;
 const FLEX_SLOT_BONUS = 20;
 
+// Kept well below REQUIRED_SLOT_BONUS so breakout buzz nudges the order
+// within a tier rather than overriding real roster need.
+const BREAKOUT_BONUS_CAP = 25;
+
+function breakoutBonus(player: Player): number {
+  if (!player.isBreakout) return 0;
+  return Math.min(BREAKOUT_BONUS_CAP, Math.log10(player.trendingAddCount + 1) * 6);
+}
+
 export interface Recommendation extends Player {
   value: number;
   score: number;
@@ -43,7 +52,7 @@ export function recommendPlayers(
         needBonus += FLEX_SLOT_BONUS;
       }
 
-      return { ...player, value, score: value + needBonus };
+      return { ...player, value, score: value + needBonus + breakoutBonus(player) };
     })
     .sort((a, b) => b.score - a.score);
 }

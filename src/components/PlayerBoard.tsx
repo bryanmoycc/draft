@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { DraftedBy, Player, Position, POSITIONS } from "@/lib/types";
 import PositionBadge from "./PositionBadge";
 import InjuryBadge from "./InjuryBadge";
+import BreakoutBadge from "./BreakoutBadge";
 
 interface PlayerBoardProps {
   availablePlayers: Player[];
@@ -13,14 +14,16 @@ interface PlayerBoardProps {
 export default function PlayerBoard({ availablePlayers, onDraft }: PlayerBoardProps) {
   const [positionFilter, setPositionFilter] = useState<Position | "ALL">("ALL");
   const [search, setSearch] = useState("");
+  const [breakoutOnly, setBreakoutOnly] = useState(false);
 
   const filtered = useMemo(() => {
     return availablePlayers.filter((p) => {
       if (positionFilter !== "ALL" && p.position !== positionFilter) return false;
+      if (breakoutOnly && !p.isBreakout) return false;
       if (search.trim() && !p.name.toLowerCase().includes(search.trim().toLowerCase())) return false;
       return true;
     });
-  }, [availablePlayers, positionFilter, search]);
+  }, [availablePlayers, positionFilter, breakoutOnly, search]);
 
   const tierStartIds = useMemo(() => {
     if (positionFilter === "ALL") return new Set<string>();
@@ -59,6 +62,16 @@ export default function PlayerBoard({ availablePlayers, onDraft }: PlayerBoardPr
             {pos}
           </button>
         ))}
+        <button
+          onClick={() => setBreakoutOnly((v) => !v)}
+          className={`px-3 py-1 rounded-full text-sm font-medium border ${
+            breakoutOnly
+              ? "bg-indigo-600 text-white border-indigo-600"
+              : "border-black/10 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/5"
+          }`}
+        >
+          🚀 Breakouts
+        </button>
         <input
           type="text"
           placeholder="Search player…"
@@ -98,6 +111,7 @@ export default function PlayerBoard({ availablePlayers, onDraft }: PlayerBoardPr
                     <span className="inline-flex items-center gap-1.5">
                       {p.name}
                       <InjuryBadge status={p.injuryStatus} />
+                      <BreakoutBadge isBreakout={p.isBreakout} trendingAddCount={p.trendingAddCount} />
                     </span>
                   </td>
                   <td className="px-3 py-2 text-foreground/60">{p.team ?? "—"}</td>

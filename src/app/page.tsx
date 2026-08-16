@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import PlayerBoard from "@/components/PlayerBoard";
 import RosterSidebar from "@/components/RosterSidebar";
 import RecommendPanel from "@/components/RecommendPanel";
+import BreakoutWatch from "@/components/BreakoutWatch";
 import { useDraftStore } from "@/store/draftStore";
 import { recommendPlayers } from "@/lib/recommend";
 import { assignRoster } from "@/lib/roster";
@@ -88,8 +89,9 @@ export default function Home() {
             <section className="min-h-0">
               <PlayerBoard availablePlayers={availablePlayers} onDraft={draftPlayer} />
             </section>
-            <aside className="min-h-0 overflow-y-auto">
+            <aside className="min-h-0 overflow-y-auto flex flex-col gap-5">
               <RecommendPanel recommendations={recommendations} onDraft={draftPlayer} />
+              <BreakoutWatch availablePlayers={availablePlayers} onDraft={draftPlayer} />
             </aside>
             <aside className="min-h-0 overflow-y-auto">
               <RosterSidebar assignment={rosterAssignment} onUndo={undoPick} />

@@ -11,6 +11,9 @@ export interface Player {
   positionRank: number;
   tier: number;
   injuryStatus: string | null;
+  yearsExp: number | null;
+  trendingAddCount: number;
+  isBreakout: boolean;
 }
 
 export type DraftedBy = "me" | "opponent";
