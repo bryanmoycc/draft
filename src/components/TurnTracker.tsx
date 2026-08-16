@@ -20,7 +20,7 @@ export default function TurnTracker({ picksCount, settings, onSettingsChange }: 
           type="number"
           min={1}
           max={settings.numTeams}
-          value={settings.myDraftSlot}
+          value={settings.myDraftSlot ?? 1}
           onChange={(e) => {
             const myDraftSlot = Math.min(Math.max(1, Number(e.target.value) || 1), settings.numTeams);
             onSettingsChange({ ...settings, myDraftSlot });
@@ -32,7 +32,7 @@ export default function TurnTracker({ picksCount, settings, onSettingsChange }: 
           type="number"
           min={2}
           max={32}
-          value={settings.numTeams}
+          value={settings.numTeams ?? 12}
           onChange={(e) => {
             const numTeams = Math.min(Math.max(2, Number(e.target.value) || 2), 32);
             const myDraftSlot = Math.min(settings.myDraftSlot, numTeams);

@@ -39,6 +39,19 @@ export const useDraftStore = create<DraftState>()(
     {
       name: "draft-assistant-storage",
       partialize: (state) => ({ picks: state.picks, rosterSettings: state.rosterSettings }),
+      // Zustand's default merge replaces `rosterSettings` wholesale with whatever
+      // shape was last persisted. If that predates a field we've since added
+      // (e.g. myDraftSlot), the field comes back undefined and React warns about
+      // an input flipping between controlled/uncontrolled. Deep-merge against the
+      // current defaults instead so every field is always defined.
+      merge: (persisted, current) => {
+        const persistedState = (persisted ?? {}) as Partial<DraftState>;
+        return {
+          ...current,
+          ...persistedState,
+          rosterSettings: { ...current.rosterSettings, ...persistedState.rosterSettings },
+        };
+      },
     }
   )
 );
