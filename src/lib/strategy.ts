@@ -45,8 +45,13 @@ export const PHASE_LABELS: Record<DraftPhase, string> = {
   "best-available": "Best available RB/WR/K/DEF (QB lowest priority)",
 };
 
-const PRIMARY_BONUS = 30;
-const SECONDARY_BONUS = 12;
+// Small nudges, not overrides: a typical tier-to-tier value gap (roughly
+// 6-15 VBD points) should be enough for a standout player at a
+// lower-priority position to still outrank the phase's target position.
+// These only decide close calls between comparably-valued players.
+const PRIMARY_BONUS = 15;
+const SECONDARY_BONUS = 6;
+const KDEF_BONUS = 4;
 
 export function strategyBonus(position: Position, counts: PositionCounts): number {
   const phase = getDraftPhase(counts);
@@ -74,7 +79,7 @@ export function strategyBonus(position: Position, counts: PositionCounts): numbe
       return 0;
     case "best-available":
       if (position === "RB" || position === "WR") return SECONDARY_BONUS;
-      if (position === "K" || position === "DEF") return SECONDARY_BONUS - 4;
+      if (position === "K" || position === "DEF") return KDEF_BONUS;
       return 0; // QB (3rd+) is the lowest priority here
   }
 }
