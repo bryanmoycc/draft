@@ -1,0 +1,49 @@
+import { openRequiredSlots, RosterAssignment } from "./roster";
+import { FLEX_ELIGIBLE, Player, Position, RosterSettings } from "./types";
+
+// VBD-style replacement ranks calibrated for a 12-team league, scaled by league size.
+const BASELINE_REPLACEMENT_RANK_12_TEAM: Record<Position, number> = {
+  QB: 14,
+  RB: 30,
+  WR: 36,
+  TE: 14,
+  K: 12,
+  DEF: 12,
+};
+
+const REQUIRED_SLOT_BONUS = 40;
+const FLEX_SLOT_BONUS = 20;
+
+export interface Recommendation extends Player {
+  value: number;
+  score: number;
+}
+
+function replacementRank(position: Position, numTeams: number): number {
+  return Math.round((BASELINE_REPLACEMENT_RANK_12_TEAM[position] * numTeams) / 12);
+}
+
+export function recommendPlayers(
+  availablePlayers: Player[],
+  rosterAssignment: RosterAssignment[],
+  settings: RosterSettings
+): Recommendation[] {
+  const openSlots = openRequiredSlots(rosterAssignment);
+  const openPositions = new Set(openSlots.filter((s) => s !== "FLEX"));
+  const flexOpen = openSlots.includes("FLEX");
+
+  return availablePlayers
+    .map((player) => {
+      const value = replacementRank(player.position, settings.numTeams) - player.positionRank;
+
+      let needBonus = 0;
+      if (openPositions.has(player.position)) {
+        needBonus += REQUIRED_SLOT_BONUS;
+      } else if (flexOpen && FLEX_ELIGIBLE.includes(player.position)) {
+        needBonus += FLEX_SLOT_BONUS;
+      }
+
+      return { ...player, value, score: value + needBonus };
+    })
+    .sort((a, b) => b.score - a.score);
+}
