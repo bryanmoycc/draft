@@ -126,7 +126,10 @@ export async function fetchPlayers(): Promise<Player[]> {
   const data = (await res.json()) as Record<string, SleeperPlayer>;
 
   const raw = Object.values(data).filter((p): p is SleeperPlayer & { position: string } => {
-    if (!p.active || !p.position) return false;
+    // Sleeper's `active` flag doesn't reliably track roster status — plenty of
+    // long-retired players (Tom Brady, Todd Gurley) still come back as active
+    // with no team. Requiring a team is what actually means "on an NFL roster".
+    if (!p.active || !p.position || !p.team) return false;
     return POSITIONS.includes(p.position as Position);
   });
 
