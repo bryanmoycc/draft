@@ -12,6 +12,7 @@ import { assignRoster } from "@/lib/roster";
 import { getTurnInfo } from "@/lib/snake";
 import { countMyPositions, getStrategyNote } from "@/lib/strategy";
 import { Player } from "@/lib/types";
+import Link from "next/link";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -74,7 +75,12 @@ export default function Home() {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       <header className="flex items-center justify-between px-6 py-4 border-b border-black/10 dark:border-white/15">
-        <h1 className="text-lg font-bold">Fantasy Draft Assistant</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-lg font-bold">Fantasy Draft Assistant</h1>
+          <Link href="/espn" className="text-sm text-foreground/60 hover:text-foreground underline">
+            Live ESPN roster →
+          </Link>
+        </div>
         <div className="flex items-center gap-4">
           <TurnTracker picksCount={picks.length} settings={rosterSettings} onSettingsChange={setRosterSettings} />
           <span className="text-sm text-foreground/60">{picks.length} picks made</span>
